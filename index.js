@@ -1,19 +1,37 @@
 const express = require("express");
 const path = require("path");
 const db = {
-	data: require("./db/db.json"),
-	get: function(id) {
-		if(id) {
+	nextID: 0,
+	data: (() => {
+		let data = require("./db/db.json");
+		this.nextID = this.nextID | 0;
+		return data.map(elem => {
+			const newElem = { ...elem };
+			newElem.id = this.nextID++;
+			return newElem;
+		});
+	})(),
+	get: function (id) {
+		if (id) {
 			return null;
 		} else {
 			return this.data;
 		}
 	},
-	add: function(entry) {
+	add: function (entry) {
+		entry.id = this.nextID++;
 		this.data.push(entry);
 		return entry;
 	},
-	remove: function(id) {
+	remove: function (id) {
+		const length = this.data.length;
+		for (let i = 0; i < length; ++i) {
+			if (this.data[i].id === id) {
+				const target = this.data[i];
+				this.data.splice(i, 1);
+				return target;
+			}
+		}
 		return null;
 	}
 }
@@ -33,7 +51,7 @@ app.post("/api/notes", (req, res) => {
 });
 
 app.delete("/api/notes/:id", (req, res) => {
-	res.send("Delete");
+	res.json(db.remove(parseInt(req.params.id)));
 });
 
 app.get("/notes", (req, res) => {
