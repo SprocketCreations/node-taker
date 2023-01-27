@@ -3,11 +3,16 @@ const fs = require("fs");
 class Database {
 	constructor() {
 		this.nextID = 0;
-		this.data = require("../db/db.json").map(elem => {
-			const newElem = { ...elem };
-			newElem.id = this.nextID++;
-			return newElem;
-		});
+		try {
+			this.data = require("../db/db.json").map(elem => {
+				const newElem = { ...elem };
+				newElem.id = this.nextID++;
+				return newElem;
+			});
+		} catch (e) {
+			// No db.json yet, so just empty array
+			this.data = [];
+		}
 	}
 	get() {
 		return this.data;
