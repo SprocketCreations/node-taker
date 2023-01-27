@@ -4,23 +4,28 @@ const fs = require("fs");
 const db = {
 	nextID: 0,
 	data: (() => {
-		let data = require("./db/db.json");
-		this.nextID = this.nextID | 0;
-		return data.map(elem => {
-			const newElem = { ...elem };
-			newElem.id = this.nextID++;
-			return newElem;
-		});
+		try {
+			const data = require("./db/db.json");
+			this.nextID = this.nextID | 0;
+			return data.map(elem => {
+				const newElem = { ...elem };
+				newElem.id = this.nextID++;
+				return newElem;
+			});
+		} catch(e) {
+			return [];
+		}
 	})(),
 	get: function () {
 		return this.data;
 	},
 	add: async function (entry) {
-		entry.id = this.nextID++;
-		this.data.push(entry);
+		const newEntry = {...entry};
+		newEntry.id = this.nextID++;
+		this.data.push(newEntry);
 		try {
 			await fs.promises.writeFile("./db/db.json", JSON.stringify(this.data));
-			return entry;
+			return newEntry;
 		} catch(e) {
 			return null;
 		}
