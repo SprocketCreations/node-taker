@@ -12,6 +12,9 @@ class Database {
 		} catch (e) {
 			// No db.json yet, so just empty array
 			this.data = [];
+			fs.mkdir("./db/",{recursive: true}, err => {
+				if(err) throw err;
+			});
 		}
 	}
 	get() {
@@ -22,7 +25,7 @@ class Database {
 		newEntry.id = this.nextID++;
 		this.data.push(newEntry);
 		try {
-			await fs.promises.writeFile("./db/db.json", JSON.stringify(this.data));
+			await this.write(JSON.stringify(this.data));
 			return newEntry;
 		} catch (e) {
 			return null;
@@ -33,17 +36,23 @@ class Database {
 		const length = this.data.length;
 		for (let i = 0; i < length; ++i) {
 			if (this.data[i].id === id) {
-				try {
-					const target = this.data[i];
-					this.data.splice(i, 1);
-					await fs.promises.writeFile("./db/db.json", JSON.stringify(this.data));
-					return target;
-				} catch (e) {
-					return null;
-				}
+				const target = this.data[i];
+				this.data.splice(i, 1);
+				await this.write(JSON.stringify(this.data))
+				return target;
 			}
 		}
 		return null;
+	}
+	/**
+	 * @param {string} str The data to write to the database.
+	 */
+	async write(str) {
+		try {
+			await fs.promises.writeFile("./db/db.json", str);
+		} catch (e) {
+			return null;
+		}
 	}
 };
 
